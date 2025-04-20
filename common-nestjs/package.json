@@ -1,0 +1,33 @@
+{
+  "name": "@kominal/common-nestjs",
+  "version": "0.0.23",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "nest build",
+    "postbuild": "cp package.json dist",
+    "push": "npm run build && cd dist && npm publish"
+  },
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.787.0",
+    "@aws-sdk/s3-request-presigner": "^3.787.0",
+    "@nestjs/common": "^11.0.20",
+    "@nestjs/mongoose": "^11.0.3",
+    "@nestjs/swagger": "^11.1.4",
+    "body-parser": "^2.2.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.2.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "folders": [
+    { "name": "Common Angular", "path": "common-angular" },
+    { "name": "Common NestJS", "path": "common-nestjs" },
+    { "name": "GitHub Actions", "path": ".github/workflows" },
+    { "name": "Common", "path": "." }
+  ],
+  "settings": {
+		"editor.rulers": [180],
+    "editor.formatOnSave": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "debug.console.acceptSuggestionOnEnter": "on",
+    "typescript.tsserver.log": "off",
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "editor.suggestSelection": "first",
+    "editor.detectIndentation": false,
+    "javascript.suggest.enabled": false,
+    "editor.inlineSuggest.enabled": true,
+    "redhat.telemetry.enabled": false,
+    "github.copilot.enable": {
+      "*": true,
+      "yaml": true,
+      "plaintext": true,
+      "markdown": true
+    },
+    "[typescript]": {
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+      }
+    },
+    "git.confirmSync": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "extensions": {
+    "recommendations": [
+      "angular.ng-template",
+      "dbaeumer.vscode-eslint",
+      "eamodio.gitlens",
+      "esbenp.prettier-vscode",
+      "yigitfindikli.primeflexsnippets"
+    ]
+  }
+}

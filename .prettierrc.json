@@ -1,0 +1,6 @@
+{
+  "singleQuote": true,
+  "htmlWhitespaceSensitivity": "strict",
+  "printWidth": 180,
+  "plugins": ["prettier-plugin-tailwindcss"]
+}
