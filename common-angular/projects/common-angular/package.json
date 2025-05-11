@@ -1,0 +1,14 @@
+{
+  "name": "@kominal/common-angular",
+  "version": "0.0.2",
+  "peerDependencies": {
+    "@angular/common": "^19.2.0",
+    "@angular/core": "^19.2.0",
+    "@ngx-translate/core": "^16.0.4",
+    "primeng": "^19.1.2"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}
