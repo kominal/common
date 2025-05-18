@@ -10,11 +10,11 @@ process.on('uncaughtException', (exception) => {
   console.log(exception);
 });
 
-export async function bootstrap(module: any): Promise<void> {
+export async function bootstrap(module: any, bodyParser = true): Promise<void> {
   const app = await NestFactory.create(module, {
     logger: new CommonLogger(),
     cors: { origin: '*' },
-    bodyParser: false,
+    bodyParser,
   });
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new CommonExceptionFilter());
