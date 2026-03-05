@@ -1,0 +1,20 @@
+@if (label(); as label) {
+  <app-label [label]="label" [formElement]="formElement()" />
+}
+@if (mode() === 'DROPDOWN') {
+  <p-select
+    [filter]="true"
+    class="w-full"
+    styleClass="w-full"
+    appendTo="body"
+    [formControl]="formElement()"
+    [options]="(options() | translateSelectItems | async) || []"
+    optionLabel="label"
+    optionValue="value"
+    [showClear]="!required()"
+    panelStyleClass="w-full"
+  ></p-select>
+}
+@if (mode() === 'BUTTON') {
+  <p-selectButton [formControl]="formElement()" [options]="(options() | translateSelectItems | async) || []" optionLabel="label" optionValue="value" />
+}

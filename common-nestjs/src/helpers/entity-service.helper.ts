@@ -1,7 +1,7 @@
 import { applyDecorators, HttpException } from '@nestjs/common';
 import { ApiExtraModels, ApiOkResponse, ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
-import { FilterQuery, Model, PopulateOptions } from 'mongoose';
+import { ApplyBasicCreateCasting, DeepPartial, Model, PopulateOptions, QueryFilter, Require_id, UpdateQuery } from 'mongoose';
 import { v4 } from 'uuid';
 import { BaseEntity } from '../models/entity.model';
 
@@ -23,9 +23,13 @@ export class GlobalEntityPathParams {
   @ApiProperty() @IsString() public uuid: string;
 }
 
+export class OptionalGlobalEntityPathParams {
+  @ApiProperty({ required: false }) @IsOptional() @IsString() public uuid?: string;
+}
+
 export class ListParams {
   @ApiProperty({ required: false }) @IsOptional() @IsString() public active?: string;
-  @ApiProperty({ required: false }) @IsOptional() @IsString() public direction?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsString() public direction?: 'asc' | 'desc';
   @ApiProperty({ required: false }) @IsOptional() public pageIndex?: number;
   @ApiProperty({ required: false }) @IsOptional() public pageSize?: number;
   @ApiProperty({ required: false }) @IsOptional() @IsString() public filter?: string;
@@ -37,9 +41,7 @@ export class ListResponse<T> {
   @ApiProperty() @IsNumber() public count: number;
 }
 
-export const OpenApiPaginationResponse = (
-  model: any,
-): (<TFunction extends Function, Y>(target: object | TFunction, propertyKey?: string | symbol, descriptor?: TypedPropertyDescriptor<Y>) => void) =>
+export const OpenApiPaginationResponse = (model: Function): ((target: object, propertyKey?: string | symbol, descriptor?: TypedPropertyDescriptor<any>) => void) =>
   applyDecorators(
     ApiOkResponse({ schema: { properties: { items: { type: 'array', items: { $ref: getSchemaPath(model) } }, count: { type: 'number' } }, required: ['items', 'count'] } }),
     ApiExtraModels(model),
@@ -49,30 +51,62 @@ export class ChangeContext {
   email: string;
 }
 
-export function created<Entity extends BaseEntity>(changeContext: ChangeContext, entity: Partial<Entity>): Partial<Entity> {
+export function created<Entity extends BaseEntity>(changeContext: ChangeContext, entity: Partial<Entity>): DeepPartial<ApplyBasicCreateCasting<Require_id<Entity>>> {
   return {
     ...entity,
     uuid: v4(),
     createdAt: new Date(),
     createdBy: changeContext.email,
-    updatedAt: new Date(),
-    updatedBy: changeContext.email,
+    changedAt: new Date(),
+    changedBy: changeContext.email,
+  } as DeepPartial<ApplyBasicCreateCasting<Require_id<Entity>>>;
+}
+
+export function changed<Entity extends BaseEntity>(changeContext: ChangeContext, entity: Partial<Entity>): UpdateQuery<Entity> {
+  return {
+    ...entity,
+    changedAt: new Date(),
+    changedBy: changeContext.email,
   };
 }
 
-export function changed<Entity extends BaseEntity>(changeContext: ChangeContext, entity: Partial<Entity>): Partial<Entity> {
-  return {
-    ...entity,
-    updatedAt: new Date(),
-    updatedBy: changeContext.email,
-  };
+export async function list<Entity extends BaseEntity, EntitiesPath extends QueryFilter<Entity>, PopulatedEntity = Entity>(
+  model: Model<Entity>,
+  pathParams: EntitiesPath,
+  { active, direction, pageIndex, pageSize, filter, select }: ListParams,
+  populate?: PopulateOptions | PopulateOptions[],
+): Promise<ListResponse<PopulatedEntity>> {
+  let evaluatedFilter: QueryFilter<Entity> = {};
+
+  if (filter) {
+    evaluatedFilter = JSON.parse(filter) as QueryFilter<Entity>;
+  }
+
+  evaluatedFilter = { ...evaluatedFilter, ...pathParams };
+
+  let query = model
+    .find(evaluatedFilter)
+    .select(select || '')
+    .sort({ [active || '_id']: direction || 'asc' })
+    .populate(populate || []);
+
+  if (pageIndex && pageSize) {
+    query = query.skip(pageIndex * pageSize);
+  }
+  if (pageSize) {
+    query = query.limit(pageSize);
+  }
+
+  const [items, count] = await Promise.all([query.lean<PopulatedEntity[]>(), model.countDocuments(evaluatedFilter)]);
+
+  return { items, count };
 }
 
 export class EntityService<
   Entity extends BaseEntity,
-  EntitiesPath extends FilterQuery<Entity> = EntitiesPathParams,
-  EntityPath extends FilterQuery<Entity> = EntityPathParams,
-  OptionalEntityPath extends FilterQuery<Entity> = OptionalEntityPathParams,
+  EntitiesPath extends QueryFilter<Entity> = EntitiesPathParams,
+  EntityPath extends QueryFilter<Entity> = EntityPathParams,
+  OptionalEntityPath extends QueryFilter<Entity> = OptionalEntityPathParams,
   PopulatedEntity = Entity,
 > {
   public constructor(
@@ -81,7 +115,7 @@ export class EntityService<
       listSelect?: string;
       populate?: PopulateOptions | PopulateOptions[];
       defaultSortKey?: string;
-      defaultSortDirection?: string;
+      defaultSortDirection?: 'asc' | 'desc';
       technicalKeys: (keyof Entity)[];
     },
   ) {}
@@ -91,21 +125,23 @@ export class EntityService<
       delete createRequest[key];
     }
 
-    return this.model.create(created(changeContext, { ...createRequest, ...pathParams }));
+    return this.model.create(created<Entity>(changeContext, { ...createRequest, ...pathParams }));
   }
 
   public async list(pathParams: EntitiesPath, { active, direction, pageIndex, pageSize, filter, select }: ListParams): Promise<ListResponse<PopulatedEntity>> {
-    const evaluatedFilter = { ...(filter ? JSON.parse(filter) : {}), ...pathParams };
-    const items = await this.model
-      .find(evaluatedFilter)
-      .select(this.options.listSelect || select || '')
-      .sort({ [active || this.options.defaultSortKey || '_id']: (direction || this.options.defaultSortDirection || 'asc') as any })
-      .skip((pageIndex || 0) * (pageSize || 10))
-      .limit(pageSize || 10)
-      .populate(this.options.populate || [])
-      .lean<PopulatedEntity[]>();
-    const count = await this.model.countDocuments(evaluatedFilter);
-    return { items, count };
+    return list<Entity, QueryFilter<Entity>, PopulatedEntity>(
+      this.model,
+      pathParams,
+      {
+        active: active || this.options.defaultSortKey,
+        direction: direction || this.options.defaultSortDirection,
+        pageIndex,
+        pageSize,
+        filter,
+        select: this.options.listSelect || select,
+      },
+      this.options.populate,
+    );
   }
 
   public async read(params: EntityPath): Promise<Entity> {
@@ -127,14 +163,14 @@ export class EntityService<
     return this.create(changeContext, entityPath as unknown as EntitiesPath, createRequest);
   }
 
-  public async delete(params: EntityPath): Promise<any> {
+  public async delete(changeContext: ChangeContext, params: EntityPath): Promise<any> {
     if (await this.inUse(params)) {
       throw new HttpException('exception.inUse', 404);
     }
     return this.model.deleteOne(params);
   }
 
-  public async inUse(params: EntityPath): Promise<boolean> {
+  public inUse(params: EntityPath): Promise<boolean> | boolean {
     return false;
   }
 }

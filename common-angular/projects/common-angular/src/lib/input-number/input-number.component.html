@@ -1,0 +1,14 @@
+@if (label(); as label) {
+  <app-label [label]="label" [formElement]="formElement()" />
+}
+<p-inputNumber
+  [formControl]="formElement()"
+  [min]="min()"
+  [max]="max()"
+  [step]="step()"
+  [mode]="mode()"
+  [currency]="currency()"
+  locale="de-DE"
+  [useGrouping]="useGrouping()"
+  [placeholder]="placeholder() || ''"
+/>

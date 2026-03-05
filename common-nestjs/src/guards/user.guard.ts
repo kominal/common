@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Optional } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { v4 } from 'uuid';
 import { Membership, MembershipModel, MembershipStatus } from '../entities/membership.entity';
@@ -9,9 +9,9 @@ import { AuthService } from '../services/auth.service';
 @Injectable()
 export class UserGuard implements CanActivate {
   public constructor(
-    @InjectModel(Membership.name) private membershipModel: MembershipModel,
     @InjectModel(User.name) private userModel: UserModel,
     private authService: AuthService,
+    @Optional() @InjectModel(Membership.name) private membershipModel: MembershipModel,
   ) {}
 
   public async populateUserContext(context: ExecutionContext): Promise<UserContext | undefined> {
@@ -45,8 +45,10 @@ export class UserGuard implements CanActivate {
       { upsert: true },
     );
 
-    const invitations = await this.membershipModel.find({ email: userContext.email, status: MembershipStatus.INVITED });
-    await Promise.all(invitations.map(async (invitation) => invitation.updateOne({ userId: userContext.userId, status: MembershipStatus.ACTIVE })));
+    if (this.membershipModel) {
+      const invitations = await this.membershipModel.find({ email: userContext.email, status: MembershipStatus.INVITED });
+      await Promise.all(invitations.map(async (invitation) => invitation.updateOne({ userId: userContext.userId, status: MembershipStatus.ACTIVE })));
+    }
 
     return userContext;
   }

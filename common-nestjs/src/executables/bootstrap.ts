@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { Test, TestingModule } from '@nestjs/testing';
+import { json } from 'body-parser';
 import { writeFileSync } from 'fs';
 import { exit } from 'process';
 import { CommonExceptionFilter } from '../helpers/exception-filter';
@@ -21,16 +22,30 @@ function getOpenAPIObject(app: INestApplication): OpenAPIObject {
   return SwaggerModule.createDocument(app, config);
 }
 
-export function findControllers(module: any): any[] {
+function findControllers(module: any): any[] {
   const reflector = new Reflector();
-  const controllers = reflector.get<any[]>('controllers', module) || [];
-  const imports = reflector.get<any[]>('imports', module) || [];
-  return [...imports.reduce((acc: any[], mod: any) => [...acc, ...findControllers(mod)], []), ...controllers];
+  let controllers = reflector.get<any[]>('controllers', module) || [];
+  if (module && module.controllers) {
+    controllers = [...controllers, ...module.controllers];
+  }
+  return controllers;
 }
 
-export async function bootstrap(module: any, bodyParser = true): Promise<void> {
+function findProviders(module: any): any[] {
+  const reflector = new Reflector();
+  let providers = reflector.get<any[]>('providers', module) || [];
+  if (module && module.providers) {
+    providers = [...providers, ...module.providers];
+  }
+  return providers;
+}
+
+export async function bootstrap(module: any, swaggerModules: any[] = [], bodyParser = true, whitelist = true): Promise<void> {
   if (process.env.GENERATE_SWAGGER) {
-    const moduleRef: TestingModule = await Test.createTestingModule({ controllers: findControllers(module) })
+    const moduleRef: TestingModule = await Test.createTestingModule({
+      controllers: swaggerModules.flatMap((m) => findControllers(m)),
+      providers: swaggerModules.flatMap((m) => findProviders(m)).map((provide) => ({ provide, useValue: undefined })),
+    })
       .useMocker(() => ({}))
       .compile();
     const app = moduleRef.createNestApplication();
@@ -43,10 +58,13 @@ export async function bootstrap(module: any, bodyParser = true): Promise<void> {
       cors: { origin: '*' },
       bodyParser,
     });
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist }));
     app.useGlobalFilters(new CommonExceptionFilter());
     app.enableCors();
-    SwaggerModule.setup('api', app, getOpenAPIObject(app));
+    if (bodyParser) {
+      app.use(json({ limit: '8mb' }));
+    }
+    SwaggerModule.setup('docs', app, getOpenAPIObject(app));
     await app.listen(3000);
   }
 }

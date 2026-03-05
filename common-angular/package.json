@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "push": "npm run build common-angular && cd dist/common-angular && npm publish"
   },
   "private": true,
   "dependencies": {

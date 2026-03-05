@@ -1,4 +1,4 @@
 @if (label(); as label) {
   <app-label [label]="label" [formElement]="formElement()" />
 }
-<input pInputText [formControl]="formElement()" [placeholder]="placeholder() || ''" />
+<textarea pInputTextarea [autoResize]="true" [formControl]="formElement()"></textarea>

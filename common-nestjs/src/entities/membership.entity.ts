@@ -23,13 +23,11 @@ export class Membership extends TenantEntity {
 
 export type MembershipModel = Model<Membership>;
 
-export const MembershipSchema = SchemaFactory.createForClass(Membership)
-  .index({ tenantId: 1 })
-  .index({ tenantId: 1, uuid: 1 }, { unique: true })
-  .index({ tenantId: 1, userId: 1 }, { unique: true });
+export const MembershipSchema = SchemaFactory.createForClass(Membership).index({ tenantId: 1 }).index({ tenantId: 1, uuid: 1 }, { unique: true });
 
 export class MembershipCreateRequest {
   public email: string;
+  public permissions: string[];
 }
 
 export class MembershipPopulated extends PartialType(Membership) {

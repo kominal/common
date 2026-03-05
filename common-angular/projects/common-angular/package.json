@@ -1,11 +1,11 @@
 {
   "name": "@kominal/common-angular",
-  "version": "0.0.2",
+  "version": "0.3.0",
   "peerDependencies": {
-    "@angular/common": "^19.2.0",
-    "@angular/core": "^19.2.0",
-    "@ngx-translate/core": "^16.0.4",
-    "primeng": "^19.1.2"
+    "@angular/common": "^20.3.3",
+    "@angular/core": "^20.3.3",
+    "@ngx-translate/core": "^17.0.0",
+    "primeng": "^20.2.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"

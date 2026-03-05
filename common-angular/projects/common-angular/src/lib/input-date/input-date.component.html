@@ -1,0 +1,4 @@
+@if (label(); as label) {
+  <app-label [label]="label" [formElement]="formElement()" />
+}
+<p-datepicker useUtc [formControl]="formElement()" styleClass="w-full" dateFormat="dd.mm.yy" [showClear]="!required()" appendTo="body" />
