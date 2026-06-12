@@ -12,12 +12,12 @@ import { LabelComponent } from '../label/label.component';
   templateUrl: './input-select.component.html',
   host: { class: 'flex flex-col gap-1 w-full' },
 })
-export class InputSelectComponent {
+export class InputSelectComponent<T extends string | number> {
   private readonly destroyRef = inject(DestroyRef);
 
   public readonly label = input<string>();
-  public readonly formElement = input.required<FormControl<string>>();
-  public readonly options = input.required<SelectItem[] | undefined | null>();
+  public readonly formElement = input.required<FormControl<T>>();
+  public readonly options = input.required<SelectItem<T>[] | undefined | null>();
   public readonly filter = input(true);
 
   public readonly required = signal(false);

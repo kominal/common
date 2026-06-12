@@ -17,7 +17,7 @@ export abstract class BaseEntity {
   @Prop() @ApiProperty() @IsNumber() public version: number;
 }
 
-export const TECHNICAL_KEYS_BASE_ENTITY: (keyof BaseEntity)[] = ['_id', 'uuid', 'createdAt', 'createdBy', 'changedAt', 'changedBy', 'version'];
+export const TECHNICAL_KEYS_BASE_ENTITY: (keyof BaseEntity)[] = ['_id', 'uuid', 'createdAt', 'createdBy', 'changedAt', 'changedBy', 'deletedAt', 'deletedBy', 'version'];
 
 export abstract class TenantEntity extends BaseEntity {
   @Prop() @ApiProperty() @IsString() public tenantId: string;

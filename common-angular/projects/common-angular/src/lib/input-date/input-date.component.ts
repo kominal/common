@@ -17,6 +17,7 @@ export class InputDateComponent {
 
   public label = input<string>();
   public formElement = input.required<FormControl<Date>>();
+  public showTime = input(false);
 
   public required = signal(false);
 

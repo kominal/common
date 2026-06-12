@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsArray, IsEnum, IsString } from 'class-validator';
+import { IsArray, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 import { Model } from 'mongoose';
 import { TenantEntity } from '../models/entity.model';
 import { User } from './user.entity';
@@ -26,8 +26,8 @@ export type MembershipModel = Model<Membership>;
 export const MembershipSchema = SchemaFactory.createForClass(Membership).index({ tenantId: 1 }).index({ tenantId: 1, uuid: 1 }, { unique: true });
 
 export class MembershipCreateRequest {
-  public email: string;
-  public permissions: string[];
+  @IsEmail() public email: string;
+  @IsArray() @IsString({ each: true }) @IsOptional() public permissions: string[];
 }
 
 export class MembershipPopulated extends PartialType(Membership) {
@@ -35,7 +35,7 @@ export class MembershipPopulated extends PartialType(Membership) {
 }
 
 export class MembershipUpdateRequest {
-  public permissions: string[];
+  @IsArray() @IsString({ each: true }) @IsOptional() public permissions: string[];
 }
 
 export class MembershipPathParams {

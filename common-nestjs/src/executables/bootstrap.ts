@@ -4,6 +4,7 @@ import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { Test, TestingModule } from '@nestjs/testing';
 import { json } from 'body-parser';
 import { writeFileSync } from 'fs';
+import helmet from 'helmet';
 import { exit } from 'process';
 import { CommonExceptionFilter } from '../helpers/exception-filter';
 import { CommonLogger } from '../helpers/logger';
@@ -64,6 +65,7 @@ export async function bootstrap(module: any, swaggerModules: any[] = [], bodyPar
     if (bodyParser) {
       app.use(json({ limit: '8mb' }));
     }
+    app.use(helmet());
     SwaggerModule.setup('docs', app, getOpenAPIObject(app));
     await app.listen(3000);
   }

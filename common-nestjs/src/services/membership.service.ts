@@ -34,6 +34,7 @@ export class MembershipService {
             createdBy: userContext.email,
             updatedAt: new Date(),
             updatedBy: userContext.email,
+            permissions: membershipCreateRequest.permissions || [],
           },
           { upsert: true },
         );
@@ -48,6 +49,7 @@ export class MembershipService {
           createdBy: userContext.email,
           updatedAt: new Date(),
           updatedBy: userContext.email,
+          permissions: membershipCreateRequest.permissions || [],
         },
         { upsert: true },
       );
@@ -70,7 +72,7 @@ export class MembershipService {
   public async update(userContext: UserContext, entityPathParams: EntityPathParams, body: MembershipUpdateRequest): Promise<void> {
     const membership = await this.membershipModel.findOne(entityPathParams).orFail(new HttpException('Membership not found', 404));
 
-    membership.permissions = body.permissions;
+    membership.permissions = body.permissions || [];
     membership.changedAt = new Date();
     membership.changedBy = userContext.email;
 

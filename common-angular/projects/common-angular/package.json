@@ -1,6 +1,6 @@
 {
   "name": "@kominal/common-angular",
-  "version": "0.3.0",
+  "version": "0.3.3",
   "peerDependencies": {
     "@angular/common": "^20.3.3",
     "@angular/core": "^20.3.3",
